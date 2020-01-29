@@ -4,63 +4,73 @@
 
 <head>
     <script>
-    	var window_height = window.innerHeight;
-    	var window_width = window.innerWidth;
-    	var my_image = new Image();
-		my_image.src = 'INSERT_IMAGE_FILE_NAME';
+        var window_height = window.innerHeight;
+        var window_width = window.innerWidth;
+        var my_image = new Image();
+        my_image.src = 'INSERT_IMAGE_FILE_NAME';
         var image_height = my_image.height;
         var image_width = my_image.width;
     </script>
     <meta charset='utf-8'>
     <title>INSERT_TITLE</title>
     <style>
-  
         @media (min-width: 500px) {
             .svgbg {
                 background-image: url('INSERT_IMAGE_FILE_NAME');
                 background-size: contain;
                 background-repeat: no-repeat;
-            
+
             }
-                .descr_link {
-            fill-opacity: 0.3;
-            color: white;
-        }
+
+            .descr_link {
+                fill-opacity: 0.3;
+                color: white;
+            }
         }
     </style>
 </head>
 
 <body>
-	<div style="width: 100%" onclick="dragged(event)">
-			<button draggable="true" style="margin-left: 70%" ondrag="dragged(event)">Test</button>
-	</div>
-    <div style="float:right; background-color: lightgrey; width:50%;height:50%;">
-        <div id="description" style="float:right; background-color: lightgrey; width:100%;height:50%;">
-        Hier kommt die Beschreibung hin ...
-        </div>
-            <div id="monster" style="float:right; background-color: lightpink; width:100%;height:50%;">
-        Hier die Monsterwerte .....
-        </div> 
+    <div style="width: 100%">
+        <button id="seperator" style="margin-left: 70%">Test</button>
     </div>
-    <svg id="map" class="svgbg" width="50%" height="800">
+    <div id="sidebar" style="float:right; background-color: lightgrey; width:50%;height:50%;">
+        <div id="description" style="float:right; background-color: lightgrey; width:100%;height:50%;">
+            Hier kommt die Beschreibung hin ...
+        </div>
+        <div id="monster" style="float:right; background-color: lightpink; width:100%;height:50%;">
+            Hier die Monsterwerte .....
+        </div>
+    </div>
+    <svg id="map" class="svgbg" width="50%">
     </svg>
 
     <script>
+        //setup
+        var canvas = document.getElementById("map");
+        canvas.setAttributeNS(null, "height", window_height);
+        document.getElementById("seperator").addEventListener("mousedown", function (event) {
+            document.onmousemove = handleMouseMove;
+        })
+        document.onmouseup = function (event) {
+            document.onmousemove = "";
+        }
+
         function describe(num) {
             let descr_div = document.getElementById("description");
             descr_div.innerHTML = beschreibung[num];
         }
         let beschreibung = Object();
-        beschreibung[""] = ``;
-        beschreibung[""] = ``;
-        beschreibung[""] = ``;
-        beschreibung[""] = ``;
-        beschreibung[""] = ``;
-        beschreibung[""] = ``;
-        beschreibung[""] = ``;
+        //beschreibung[""] = ``;
+        // beschreibung[""] = ``;
+        // beschreibung[""] = ``;
+        // beschreibung[""] = ``;
+        // beschreibung[""] = ``;
+        // beschreibung[""] = ``;
+        // beschreibung[""] = ``;
 
-        
-           function rect_elem(x1, y1, x2, y2) {
+
+        function rect_elem(x1, y1, x2, y2) {
             //var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             //svg.setAttributeNS(null, "id", "map");
             //svg.setAttributeNS(null, "class", "svgbg");
@@ -69,13 +79,13 @@
             //svg.setAttributeNS(null, "viewBox", "0 0 452 828");
 
             //document.getElementsByTagName('body')[0].appendChild(svg);
-            
+
 
             //var txtElem = document.createElementNS("http://www.w3.org/2000/svg", "text");
             //txtElem.setAttributeNS(null, "x", 20);
             //txtElem.setAttributeNS(null, "y", 40);
             var canvas = document.getElementById("map");
-            var conv_fact = 800/image_height;
+            var conv_fact = 800 / image_height;
             var rectElem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
             rectElem.setAttributeNS(null, "x", x1 * conv_fact);
             rectElem.setAttributeNS(null, "y", y1 * conv_fact);
@@ -85,8 +95,8 @@
             return rectElem;
 
         }
-        
-        function add_description_link(room, x1, y1, x2, y2){
+
+        function add_description_link(room, x1, y1, x2, y2) {
             var rectElem = rect_elem(x1, y1, x2, y2);
             rectElem.setAttributeNS(null, "onclick", "describe('" + room + "')");
 
@@ -96,30 +106,62 @@
             //txtElem.appendChild(theMSG);
             var svgDoc = document.getElementById('map');
             svgDoc.appendChild(rectElem);
-            }
-            
-            function add_svg_anchor(target, x1, y1, x2, y2){
+        }
+
+        function add_svg_anchor(target, x1, y1, x2, y2) {
             var rectElem = rect_elem(x1, y1, x2, y2);
-            rectElem.setAttributeNS(null,"onclick", "change_location('"+target+"')");
+            rectElem.setAttributeNS(null, "onclick", "change_location('" + target + "')");
             var svgDoc = document.getElementById('map');
             svgDoc.appendChild(rectElem);
-            }
-        function change_location(target){
+        }
+        function change_location(target) {
             window.location.href = target;
+        }
+
+        add_description_link("38", 594, 999, 1517, 1775);
+
+        // add_svg_anchor("Gewölbe1.html",33,569,336,777);
+
+        sample = a => { return a[Math.floor(Math.random() * a.length)]; }
+
+        function dragged(ev) {
+            console.log(ev);
+        }
+
+        //https://stackoverflow.com/questions/7790725/javascript-track-mouse-position
+        function handleMouseMove(event) {
+            var eventDoc, doc, body;
+
+            event = event || window.event; // IE-ism
+
+            // If pageX/Y aren't available and clientX/Y are,
+            // calculate pageX/Y - logic taken from jQuery.
+            // (This is to support old IE)
+            if (event.pageX == null && event.clientX != null) {
+                eventDoc = (event.target && event.target.ownerDocument) || document;
+                doc = eventDoc.documentElement;
+                body = eventDoc.body;
+
+                event.pageX = event.clientX +
+                    (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+                    (doc && doc.clientLeft || body && body.clientLeft || 0);
+                event.pageY = event.clientY +
+                    (doc && doc.scrollTop || body && body.scrollTop || 0) -
+                    (doc && doc.clientTop || body && body.clientTop || 0);
             }
-            
-            add_description_link("38",594,999,1517,1775);
-            
-            add_svg_anchor("Gewölbe1.html",33,569,336,777);
 
-        sample = a=>{return a[Math.floor(Math.random()*a.length)];}
-
-        function dragged(ev){
-        	console.log(ev);
+            // Use event.pageX / event.pageY here
+            console.log(event.pageX / window_width, event.pageY);
+            var width_percentage = parseInt(event.pageX * 100 / window_width) + "%";
+            var rest_width_percentage = parseInt(95 - (event.pageX * 100 / window_width)) + "%";
+            document.getElementById("seperator").style.marginLeft = width_percentage;
+            document.getElementById("seperator").style.backgroundColor = "black";
+            var canvas = document.getElementById("map");
+            canvas.setAttributeNS(null, "width", event.pageX);
+            canvas.setAttributeNS(null, "height", window_height);
+            document.getElementById("sidebar").style.width = rest_width_percentage;
         }
-            
     </script>
-        }
 </body>
 
 </html>
