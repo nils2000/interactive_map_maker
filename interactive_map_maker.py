@@ -1,8 +1,9 @@
 import os
 import tkinter as tk
 import argparse
-from tkinter.filedialog import askopenfilename
+#from tkinter.filedialog import askopenfilename
 from typing import Tuple, Dict
+import json
 
 from PIL import Image
 
@@ -62,7 +63,9 @@ def strg_w_pressed(event, koord_1, koord_2):
     description = event.widget.get("0.0", tk.END)
     global areas_of_interest
     areas_of_interest[(koord_1, koord_2)] = description[0:-1]
-    print(areas_of_interest)
+    #print(areas_of_interest,areas_of_interest_keys_as_values())
+    #https://stackoverflow.com/questions/18337407/saving-utf-8-texts-in-json-dumps-as-utf8-not-as-u-escape-sequence
+    print(json.dumps(areas_of_interest_keys_as_values(), ensure_ascii=False))
     parent.destroy()
 
 
@@ -97,39 +100,65 @@ def coords_of_containing_existing_rect(click_coords: Tuple[int, int],
     return ret[0]
 
 
+def areas_of_interest_keys_as_values():
+    global reduction_factor
+    ret = dict()
+    for key in areas_of_interest.keys():
+        tmp = areas_of_interest[key]
+        #print(tmp)
+        p1,p2 = key
+        x1,y1 = p1
+        x2,y2 = p2
+        val = [x * reduction_factor for x in [x1,y1,x2,y2]]
+        ret[tmp] = val
+    return ret
+
 parser = argparse.ArgumentParser(description='Create an interactive map')
 parser.add_argument('--filename', help='image file to create map from', default=None)
 args = parser.parse_args()
 print(args.filename)
 
 root = tk.Tk()
+#https://stackoverflow.com/questions/3129322/how-do-i-get-monitor-resolution-in-python
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+print(screen_width,screen_height)
+
 
 if args.filename is None:
     filename = "ZentarimVersteckLagerhaus.png"
 else:
     filename = args.filename
-    
+
 basename = os.path.splitext(os.path.basename(filename))[0]
 
 file_1_contents = (template.replace("INSERT_IMAGE_FILE_NAME",filename)).replace("INSERT_TITLE",basename)
 
 print(file_1_contents)
 
-im = Image.open(filename)
-print(im.size)
-
-(image_width, image_height) = im.size
-
 # You should only create one root widget for each program, and it must be created before any other widgets.
 
 
 # w = tk.Label(root, text = "Hello world")
-c = tk.Canvas(root, width=image_width, height=image_height)
+
+
+displ = tk.PhotoImage(file=filename)
+#not working: https://stackoverflow.com/questions/24745857/python-pillow-how-to-scale-an-image
+#maxsize = (screen_width, screen_height)
+#im.thumbnail(maxsize, Image.ANTIALIAS)
+
+#https://stackoverflow.com/questions/6582387/image-resize-under-photoimage
+
+reduction_factor = 1
+
+while (screen_width < displ.width() or screen_height < displ.height()):
+    displ = displ.subsample(2)
+    reduction_factor *= 2
+
+c = tk.Canvas(root, width=displ.width(), height=displ.height())
 c.bind("<Button-1>", first_callback)
 c.pack()
-
-img = tk.PhotoImage(file=filename)
-c.create_image(image_width / 2, image_height / 2, image=img)
+c.create_image(displ.width() / 2, displ.height() / 2, image=displ)
 
 root.bind("<Control-q>", quit_prog)
 
