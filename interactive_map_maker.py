@@ -62,10 +62,8 @@ def strg_w_pressed(event, koord_1, koord_2):
     # print(koord_1,koord_2,event.widget.get("0.0",tk.END))
     description = event.widget.get("0.0", tk.END)
     global areas_of_interest
-    areas_of_interest[(koord_1, koord_2)] = description[0:-1]
+    areas_of_interest[(koord_1, koord_2)] = description[0:-1].replace('\n',' ')
     #print(areas_of_interest,areas_of_interest_keys_as_values())
-    #https://stackoverflow.com/questions/18337407/saving-utf-8-texts-in-json-dumps-as-utf8-not-as-u-escape-sequence
-    print(json.dumps(areas_of_interest_keys_as_values(), ensure_ascii=False))
     parent.destroy()
 
 
@@ -82,6 +80,13 @@ def create_text_input(koord_1, koord_2, content="hello"):
 # top.destroy()
 
 def quit_prog(event):
+    global basename
+    #save to disk
+    #https://stackoverflow.com/questions/18337407/saving-utf-8-texts-in-json-dumps-as-utf8-not-as-u-escape-sequence
+    #print(json.dumps(areas_of_interest_keys_as_values(), ensure_ascii=False,indent=4))
+    with open(basename+".js", 'w', encoding='utf8') as json_file:
+        json_file.write("var rooms = ")
+        json.dump(areas_of_interest_keys_as_values(), json_file, ensure_ascii=False)
     event.widget.destroy()
 
 
@@ -134,7 +139,8 @@ basename = os.path.splitext(os.path.basename(filename))[0]
 
 file_1_contents = (template.replace("INSERT_IMAGE_FILE_NAME",filename)).replace("INSERT_TITLE",basename)
 
-print(file_1_contents)
+with open(basename+".html", 'w', encoding='utf8') as html_file:
+        html_file.write(file_1_contents)
 
 # You should only create one root widget for each program, and it must be created before any other widgets.
 
