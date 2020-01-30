@@ -10,7 +10,11 @@
         my_image.src = 'INSERT_IMAGE_FILE_NAME';
         var image_height = my_image.height;
         var image_width = my_image.width;
+        var rect_list = [];
+        //ratio of canvas_width/window_width
+        var canvas_width_ratio = 0.5;
     </script>
+    <script src="INSERT_TITLE.js"></script>
     <meta charset='utf-8'>
     <title>INSERT_TITLE</title>
     <style>
@@ -32,7 +36,7 @@
 
 <body>
     <div style="width: 100%">
-        <button id="seperator" style="margin-left: 70%">Test</button>
+        <button id="seperator" style="margin-left: 50%">Drag to resize</button>
     </div>
     <div id="sidebar" style="float:right; background-color: lightgrey; width:50%;height:50%;">
         <div id="description" style="float:right; background-color: lightgrey; width:100%;height:50%;">
@@ -49,18 +53,27 @@
         //setup
         var canvas = document.getElementById("map");
         canvas.setAttributeNS(null, "height", window_height);
+        add_descriptions();
         document.getElementById("seperator").addEventListener("mousedown", function (event) {
             document.onmousemove = handleMouseMove;
         })
         document.onmouseup = function (event) {
             document.onmousemove = "";
+            document.getElementById("seperator").style.backgroundColor = "white";
         }
 
-        function describe(num) {
+        window.onresize = function (event) {
+            window_height = window.innerHeight;
+            window_width = window.innerWidth;
+            rect_list.forEach(e => e.remove())
+            add_descriptions();
+        };
+
+        function describe(text) {
             let descr_div = document.getElementById("description");
-            descr_div.innerHTML = beschreibung[num];
+            descr_div.innerHTML = text;
         }
-        let beschreibung = Object();
+        //let beschreibung = Object();
         //beschreibung[""] = ``;
         // beschreibung[""] = ``;
         // beschreibung[""] = ``;
@@ -69,7 +82,7 @@
         // beschreibung[""] = ``;
         // beschreibung[""] = ``;
 
-
+        //returns a rect that is scaled according to the background image
         function rect_elem(x1, y1, x2, y2) {
             //var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             //svg.setAttributeNS(null, "id", "map");
@@ -84,21 +97,55 @@
             //var txtElem = document.createElementNS("http://www.w3.org/2000/svg", "text");
             //txtElem.setAttributeNS(null, "x", 20);
             //txtElem.setAttributeNS(null, "y", 40);
+
             var canvas = document.getElementById("map");
-            var conv_fact = 800 / image_height;
+
+            //console.log(conv_fact);
             var rectElem = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            rectElem.setAttributeNS(null, "x", x1 * conv_fact);
-            rectElem.setAttributeNS(null, "y", y1 * conv_fact);
-            rectElem.setAttributeNS(null, "width", (x2 - x1) * conv_fact);
-            rectElem.setAttributeNS(null, "height", (y2 - y1) * conv_fact);
+            set_rect_elem_borders(rectElem, x1, y1, x2, y2);
             rectElem.setAttributeNS(null, "class", "descr_link");
             return rectElem;
-
         }
 
-        function add_description_link(room, x1, y1, x2, y2) {
+        function set_rect_elem_borders(rect_elem, x1, y1, x2, y2) {
+            var conv_fact = image_reduction_factor();
+            rect_elem.setAttributeNS(null, "x", x1 / conv_fact);
+            rect_elem.setAttributeNS(null, "y", y1 / conv_fact);
+            rect_elem.setAttributeNS(null, "width", (x2 - x1) / conv_fact);
+            rect_elem.setAttributeNS(null, "height", (y2 - y1) / conv_fact);
+        }
+
+        //assume: we know actual canvas size
+        //assume: background image size is image_height and image_height
+        //TODO: simplify
+        function image_reduction_factor() {
+            var canvas_width = window_width * canvas_width_ratio;
+            var canvas_height = window_height;
+            //we need this for later:
+            var reduction_factor_width = image_width / canvas_width;
+            var reduction_factor_height = image_height / canvas_height;
+            //four cases: 
+            //1.) image is smaller than canvas size in both dimensions:
+            if (canvas_height > image_height && canvas_width > image_width)
+                return 1;
+            //2.) image is only wider than canvas width:
+            if (canvas_width < image_width && canvas_height > image_height)
+                return reduction_factor_width;
+            //3.) image is only higher than canvas height:
+            if (canvas_width > image_width && canvas_height < image_height)
+                return reduction_factor_height;
+            //4.) image is wider and higher:
+            //then the image is reduced more in width or more in height
+            //4.A) 
+            if (reduction_factor_height > reduction_factor_width)
+                return reduction_factor_height;
+            //4.B)
+            return reduction_factor_width;
+        }
+
+        function add_description_link(description, x1, y1, x2, y2) {
             var rectElem = rect_elem(x1, y1, x2, y2);
-            rectElem.setAttributeNS(null, "onclick", "describe('" + room + "')");
+            rectElem.setAttributeNS(null, "onclick", "describe('" + description + "')");
 
 
             //var theText = "Hello World! This is SVG Text created with JavaScript.";
@@ -106,6 +153,19 @@
             //txtElem.appendChild(theMSG);
             var svgDoc = document.getElementById('map');
             svgDoc.appendChild(rectElem);
+            rect_list.push(rectElem);
+        }
+
+        function add_descriptions() {
+            //console.log(Object.keys(rooms));
+            Object.keys(rooms).forEach(text => {
+                var coords = rooms[text];
+                var x1 = coords[0];
+                var y1 = coords[1];
+                var x2 = coords[2];
+                var y2 = coords[3];
+                add_description_link(text, x1, y1, x2, y2);
+            })
         }
 
         function add_svg_anchor(target, x1, y1, x2, y2) {
@@ -118,11 +178,11 @@
             window.location.href = target;
         }
 
-        add_description_link("38", 594, 999, 1517, 1775);
+        //add_description_link("38", 594, 999, 2124, 1422);
 
         // add_svg_anchor("Gewölbe1.html",33,569,336,777);
 
-        sample = a => { return a[Math.floor(Math.random() * a.length)]; }
+        //sample = a => { return a[Math.floor(Math.random() * a.length)]; }
 
         function dragged(ev) {
             console.log(ev);
@@ -151,15 +211,18 @@
             }
 
             // Use event.pageX / event.pageY here
-            console.log(event.pageX / window_width, event.pageY);
-            var width_percentage = parseInt(event.pageX * 100 / window_width) + "%";
-            var rest_width_percentage = parseInt(95 - (event.pageX * 100 / window_width)) + "%";
+            //console.log(event.pageX / window_width, event.pageY);
+            canvas_width_ratio = event.pageX / window_width;
+            var width_percentage = parseInt(canvas_width_ratio * 100) + "%";
+            var rest_width_percentage = parseInt(95 - (canvas_width_ratio * 100)) + "%";
             document.getElementById("seperator").style.marginLeft = width_percentage;
             document.getElementById("seperator").style.backgroundColor = "black";
             var canvas = document.getElementById("map");
             canvas.setAttributeNS(null, "width", event.pageX);
             canvas.setAttributeNS(null, "height", window_height);
             document.getElementById("sidebar").style.width = rest_width_percentage;
+            rect_list.forEach(e => e.remove())
+            add_descriptions();
         }
     </script>
 </body>
