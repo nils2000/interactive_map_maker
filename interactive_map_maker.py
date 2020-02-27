@@ -1,4 +1,4 @@
-import os
+import os,sys
 import tkinter as tk
 import argparse
 #from tkinter.filedialog import askopenfilename
@@ -9,10 +9,7 @@ from PIL import Image
 
 areas_of_interest = dict()
 
-with open('Vorlage.html') as f:
-	template = f.read()
 
-#print(template)
 
 def smaller(x, y):
     return x if x <= y else y
@@ -122,20 +119,28 @@ parser = argparse.ArgumentParser(description='Create an interactive map')
 parser.add_argument('--filename', help='image file to create map from', default=None)
 args = parser.parse_args()
 print(args.filename)
+print(sys.argv)
+
+
 
 root = tk.Tk()
 #https://stackoverflow.com/questions/3129322/how-do-i-get-monitor-resolution-in-python
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
-print(screen_width,screen_height)
+print(screen_width, screen_height)
 
+template_dir = os.path.dirname(sys.argv[0])
+#print(template_dir)
 
 if args.filename is None:
-    filename = "ZentarimVersteckLagerhaus.png"
+    quit()
 else:
     filename = args.filename
 
 basename = os.path.splitext(os.path.basename(filename))[0]
+
+with open(os.path.join(template_dir,'Vorlage.html')) as f:
+	template = f.read()
 
 file_1_contents = (template.replace("INSERT_IMAGE_FILE_NAME",filename)).replace("INSERT_TITLE",basename)
 
