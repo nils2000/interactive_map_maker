@@ -3,17 +3,6 @@
 <!--https://www.mediaevent.de/tutorial/svg-image.html-->
 
 <head>
-    <script>
-        var window_height = window.innerHeight;
-        var window_width = window.innerWidth;
-        var my_image = new Image();
-        my_image.src = 'INSERT_IMAGE_FILE_NAME';
-        var image_height = my_image.height;
-        var image_width = my_image.width;
-        var rect_list = [];
-        //ratio of canvas_width/window_width
-        var canvas_width_ratio = 0.5;
-    </script>
     <script src="INSERT_TITLE.js"></script>
     <meta charset='utf-8'>
     <title>INSERT_TITLE</title>
@@ -51,6 +40,11 @@
 
     <script>
         //setup
+        var window_height = window.innerHeight;
+        var window_width = window.innerWidth;
+        var rect_list = [];
+        //ratio of canvas_width/window_width
+        var canvas_width_ratio = 0.5;
         var canvas = document.getElementById("map");
         canvas.setAttributeNS(null, "height", window_height);
         add_descriptions();
@@ -108,39 +102,16 @@
         }
 
         function set_rect_elem_borders(rect_elem, x1, y1, x2, y2) {
-            var conv_fact = image_reduction_factor();
+
+            var img_red_factors = image_reduction_factors()
+            var red_fac_w = img_red_factors[0];
+            var red_fac_h = img_red_factors[1];
+            var conv_fact = Math.max(red_fac_h, red_fac_w);
+            console.log("red_fac_w:", red_fac_w, "red_fac_h:", red_fac_h);
             rect_elem.setAttributeNS(null, "x", x1 / conv_fact);
             rect_elem.setAttributeNS(null, "y", y1 / conv_fact);
             rect_elem.setAttributeNS(null, "width", (x2 - x1) / conv_fact);
             rect_elem.setAttributeNS(null, "height", (y2 - y1) / conv_fact);
-        }
-
-        //assume: we know actual canvas size
-        //assume: background image size is image_height and image_height
-        //TODO: simplify
-        function image_reduction_factor() {
-            var canvas_width = window_width * canvas_width_ratio;
-            var canvas_height = window_height;
-            //we need this for later:
-            var reduction_factor_width = image_width / canvas_width;
-            var reduction_factor_height = image_height / canvas_height;
-            //four cases: 
-            //1.) image is smaller than canvas size in both dimensions:
-            if (canvas_height > image_height && canvas_width > image_width)
-                return 1;
-            //2.) image is only wider than canvas width:
-            if (canvas_width < image_width && canvas_height > image_height)
-                return reduction_factor_width;
-            //3.) image is only higher than canvas height:
-            if (canvas_width > image_width && canvas_height < image_height)
-                return reduction_factor_height;
-            //4.) image is wider and higher:
-            //then the image is reduced more in width or more in height
-            //4.A) 
-            if (reduction_factor_height > reduction_factor_width)
-                return reduction_factor_height;
-            //4.B)
-            return reduction_factor_width;
         }
 
         function add_description_link(description, x1, y1, x2, y2) {
@@ -164,6 +135,7 @@
                 var y1 = coords[1];
                 var x2 = coords[2];
                 var y2 = coords[3];
+                console.log(coords, text);
                 add_description_link(text, x1, y1, x2, y2);
             })
         }
@@ -224,6 +196,31 @@
             rect_list.forEach(e => e.remove())
             add_descriptions();
         }
+        function canvas_width() {
+            return window_width * canvas_width_ratio;
+        }
+        function canvas_height() {
+            return window_height;
+        }
+
+        function image_height() {
+            var my_image = new Image();
+            my_image.src = 'INSERT_IMAGE_FILE_NAME';
+            return my_image.height;
+        }
+
+        function image_width() {
+            var my_image = new Image();
+            my_image.src = 'INSERT_IMAGE_FILE_NAME';
+            return my_image.width;
+        }
+
+        function image_reduction_factors() {
+            var image_reduction_factor_width = image_width() / canvas_width();
+            var image_reduction_factor_height = image_height() / canvas_height();
+            return [image_reduction_factor_width, image_reduction_factor_height];
+        }
+
     </script>
 </body>
 
