@@ -64,7 +64,7 @@ def strg_w_pressed(event, koord_1, koord_2):
     parent.destroy()
 
 
-def create_text_input(koord_1, koord_2, content="hello"):
+def create_text_input(koord_1, koord_2, content=""):
     top = tk.Toplevel()
     text = tk.Text(top)
     text.insert(tk.END, content)
