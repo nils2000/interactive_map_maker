@@ -141,8 +141,7 @@ def is_in_rect(rect_koords: Tuple[int, int, int, int], koords: Tuple[int, int]) 
     return (x1 <= x and x <= x2) and (y1 <= y and y <= y2)
 
 
-def coords_of_containing_existing_rect(click_coords: Tuple[int, int],
-                                       coords_dict: Dict[Tuple[int, int, int, int], str]):
+def coords_of_containing_existing_rect(click_coords: Tuple[int, int],coords_dict: Dict[Tuple[int, int, int, int], str]):
     print(click_coords)
     ret = [k for k in coords_dict.keys() if is_in_rect(k, click_coords)]
     return ret[0]
