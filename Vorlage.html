@@ -42,7 +42,13 @@
         //setup
         var window_height = window.innerHeight;
         var window_width = window.innerWidth;
+        function initialize() {
+            window_height = window.innerHeight;
+            window_width = window.innerWidth;
+        }
         var rect_list = [];
+        window.addEventListener('load', initialize);
+
         //ratio of canvas_width/window_width
         var canvas_width_ratio = 0.5;
         var canvas = document.getElementById("map");

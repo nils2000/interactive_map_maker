@@ -2,7 +2,7 @@ import os
 import sys
 import tkinter as tk
 import argparse
-#from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilename
 from typing import Tuple, Dict
 import json
 
@@ -64,7 +64,7 @@ def first_callback(event):
 
 def strg_w_pressed(event, koord_1, koord_2):
     print(event.widget.winfo_parent())
-    parent = event.widget.master
+    parent = event.widget.master.master
     # print(koord_1,koord_2,event.widget.get("0.0",tk.END))
     description = event.widget.get("0.0", tk.END)
     global areas_of_interest
@@ -74,18 +74,51 @@ def strg_w_pressed(event, koord_1, koord_2):
     parent.destroy()
 
 
-def create_text_input(koord_1, koord_2, content="<b></b><br><i></i>"):
+def link_file(event):
+    f_name = askopenfilename()
+    print(f_name)
+    surround_selection_with(
+        event, '<a href="'+os.path.relpath(f_name, filename)+'">', "</a>")
+
+
+def surround_selection_with(event, tag_start, tag_end):
+    #selection_start = event.widget.SEL_FIRST
+    #selection_end = event.widget.SEL_LAST
+    try:
+        event.widget.insert(tk.SEL_FIRST, tag_start)
+        event.widget.insert(tk.SEL_LAST, tag_end)
+    except:
+        pass
+
+
+def create_text_input(koord_1, koord_2, content=""):
     top = tk.Toplevel()
-    text = tk.Text(top)
+    main_frame = tk.Frame(top)
+    button_frame = tk.Frame(main_frame)
+    # shortcuts and buttons for <b>selection</b>,<br>,<i>selection</i>, <a> extern und intern
+    tk.Label(button_frame,
+             text="str-b:bold;\tstr-j:italic;\tstr-r:<br>;\tstr-l:<a href ...").pack()
+    button_frame.pack()
+    text = tk.Text(main_frame)
     text.insert(tk.END, content)
+    text.bind("<Control-b>", lambda event, start="<b>",
+              end="</b>": surround_selection_with(event, start, end))
+    text.bind("<Control-j>", lambda event, start="<i>",
+              end="</i>": surround_selection_with(event, start, end))
+
+#    text.bind("<Control-l>", link_file)
+    text.bind("<Control-l>", lambda event, start='<a href="">',
+              end="</a>": surround_selection_with(event, start, end))
+    text.bind("<Control-r>", lambda event: text.insert(tk.INSERT, "<br>"))
     top.bind("<Control-w>", lambda event, k1=koord_1,
              k2=koord_2: strg_w_pressed(event, k1, k2))
     text.focus_set()
     # top.protocol("WM_DELETE_WINDOW",text_window_closed(top))
     text.pack()
-
+    main_frame.pack()
 
 # top.destroy()
+
 
 def quit_prog(event):
     print("tSCHÜSS", areas_of_interest)
@@ -108,8 +141,7 @@ def is_in_rect(rect_koords: Tuple[int, int, int, int], koords: Tuple[int, int]) 
     return (x1 <= x and x <= x2) and (y1 <= y and y <= y2)
 
 
-def coords_of_containing_existing_rect(click_coords: Tuple[int, int],
-                                       coords_dict: Dict[Tuple[int, int, int, int], str]):
+def coords_of_containing_existing_rect(click_coords: Tuple[int, int],coords_dict: Dict[Tuple[int, int, int, int], str]):
     print(click_coords)
     ret = [k for k in coords_dict.keys() if is_in_rect(k, click_coords)]
     return ret[0]
